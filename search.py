@@ -1,22 +1,8 @@
-# search.py
-# ---------
-# Licensing Information:  You are free to use or extend these projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
-# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero
-# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and
-# Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
 
 """
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
-
 import util
 
 class SearchProblem:
@@ -73,31 +59,71 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
-    """
-    Search the deepest nodes in the search tree first.
+    def DFS(root, branchActions):
+        branchActions.add(root.action)
 
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
+        if(root.isGoalState(root)):
+            return branchActions
+             
+        leaves = root.getSuccessors(root)
 
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-    """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+        if(leaves is None):
+            return None        
+        for leaf in leaves:
+            branchActions = DFS(leaf, branchActions)
+            if(branchActions is not None):
+                return branchActions
+    
+    return DFS(problem.getStartState(), ["""empty"""])
 
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def BFS(root, leafActions):
+        leafActions.add(root.action)
+        leaves = root.getSuccessors(root)
+
+        if(leaves is None):
+            return None
+        
+        for leaf in leaves:
+            if(leaf.isGoalState(leaf)):
+                return leafActions
+            
+        for leaf in leaves:
+            leafActions = BFS(leaf, leafActions)
+            if(leafActions is not None):
+                return leafActions
+    
+    return BFS(problem.getStartState, ["""empty"""])
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
+    goalPathNumbers = 0
+    tuple[goalPathNumbers][0] = ["""illegal"""]
+    tuple[goalPathNumbers][1] = ["""infinity"""]
+
+    def USC(root, branchActions):
+        if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
+            return None
+            
+        branchActions.add(root.action)
+
+        if(root.isGoalState(root)):
+            tuple[goalPathNumbers][0] = branchActions
+            tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
+            goalPathNumbers += 1
+            return
+             
+        leaves = root.getSuccessors(root)
+        for leaf in leaves:
+            branchActions = USC(leaf, branchActions)
+            
+    USC(problem.getStartState(), ["""empty"""])
+
+    for number in range(1,goalPathNumbers):
+        if(tuple[0][1] > tuple[number][1]):
+            tuple[0] = tuple[number]
+        
+    return tuple[0][0]
 
 def nullHeuristic(state, problem=None):
     """
@@ -106,10 +132,41 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+def myAStarHeuristic(state, problem):
+    return problem.goal - state
+
+"""---------------------------------------------------------------------------------------------"""
+
+def aStarSearch(problem, heuristic=nullHeuristic):        
+    tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
+    goalPathNumbers = 0
+    tuple[goalPathNumbers][0] = ["""illegal"""]
+    tuple[goalPathNumbers][1] = ["""infinity"""]
+
+    def AStar(root, branchActions):
+        if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
+            return None
+            
+        branchActions.add(root.action)
+
+        if(root.isGoalState(root)):
+            tuple[goalPathNumbers][0] = branchActions
+            tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
+            goalPathNumbers += 1
+            return
+             
+        leaves = root.getSuccessors(root)
+
+        for leaf in leaves:
+            branchActions = AStar(leaf, branchActions)
+            
+    AStar(problem.getStartState(), ["""empty"""])
+
+    for number in range(1,goalPathNumbers):
+        if(tuple[0][1] > tuple[number][1]):
+            tuple[0] = tuple[number]
+        
+    return tuple[0][0]
 
 
 # Abbreviations
