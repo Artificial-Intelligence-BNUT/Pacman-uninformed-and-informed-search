@@ -59,71 +59,170 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
-    def DFS(root, branchActions):
-        branchActions.add(root.action)
+    from util import Stack
+    stack = Stack
+    finish = False
+
+    def DFS(root):
+        if(root in problem.explored):
+            return stack
+        if(finish == True):
+            return stack
+        
+        stack.push(root)
 
         if(root.isGoalState(root)):
-            return branchActions
+            finish = True
+            return stack
              
-        leaves = root.getSuccessors(root)
+        leaves = stack.pop().getSuccessors()
 
         if(leaves is None):
-            return None        
+            return None
+        
         for leaf in leaves:
-            branchActions = DFS(leaf, branchActions)
-            if(branchActions is not None):
-                return branchActions
+            if(finish == True):
+                return stack
+            stack = DFS(leaf)
     
-    return DFS(problem.getStartState(), ["""empty"""])
+    return DFS(problem.getStartState())
 
 def breadthFirstSearch(problem):
-    def BFS(root, leafActions):
-        leafActions.add(root.action)
-        leaves = root.getSuccessors(root)
+    from util import Queue
+    queue = Queue
+    finish = False
+
+    def BFS(root):
+        if(root in problem.explored):
+            return queue
+
+        if(finish == True):
+            return queue
+        
+        queue.push(root)
+
+        if(root.isGoalState()):
+            finish = True
+            return queue
+             
+        leaves = queue.pop().getSuccessors()
 
         if(leaves is None):
-            return None
+            return queue
         
         for leaf in leaves:
-            if(leaf.isGoalState(leaf)):
-                return leafActions
-            
-        for leaf in leaves:
-            leafActions = BFS(leaf, leafActions)
-            if(leafActions is not None):
-                return leafActions
+            if(finish == True):
+                return queue
+            queue = BFS(leaf)
     
-    return BFS(problem.getStartState, ["""empty"""])
+    return BFS(problem.getStartState())
 
 def uniformCostSearch(problem):
-    tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
-    goalPathNumbers = 0
-    tuple[goalPathNumbers][0] = ["""illegal"""]
-    tuple[goalPathNumbers][1] = ["""infinity"""]
+    from util import PriorityQueue
 
-    def USC(root, branchActions):
-        if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
-            return None
-            
-        branchActions.add(root.action)
+    from util import Queue
+    
+    priorityQueue = PriorityQueue
+    
+    finish = False
 
-        if(root.isGoalState(root)):
-            tuple[goalPathNumbers][0] = branchActions
-            tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
-            goalPathNumbers += 1
-            return
-             
-        leaves = root.getSuccessors(root)
-        for leaf in leaves:
-            branchActions = USC(leaf, branchActions)
-            
-    USC(problem.getStartState(), ["""empty"""])
-
-    for number in range(1,goalPathNumbers):
-        if(tuple[0][1] > tuple[number][1]):
-            tuple[0] = tuple[number]
+    def UCS(root):
+        if(root in problem.explored):
+            return priorityQueue
         
-    return tuple[0][0]
+        if(finish == True):
+            return actions
+        
+        priorityQueue.push(root, actions.getCostOfActions(actions))
+
+        actions.push(root.action)
+
+        item = priorityQueue.pop()
+
+        if(item.isGoalState()):
+            finish = True
+            return actions
+             
+        leaves = priorityQueue.pop().getSuccessors()
+
+        if(leaves is None):
+            return actions
+        
+        for leaf in leaves:
+            if(finish == True):
+                return actions
+            actions = UCS(leaf)
+
+        actions.pop()
+    
+    return UCS(problem.getStartState())
+
+# def depthFirstSearch(problem):
+#     def DFS(root, branchActions):
+#         branchActions.add(root.action)
+
+#         if(root.isGoalState(root)):
+#             return branchActions
+             
+#         leaves = root.getSuccessors()
+
+#         if(leaves is None):
+#             return None        
+#         for leaf in leaves:
+#             branchActions = DFS(leaf, branchActions)
+#             if(branchActions is not None):
+#                 return branchActions
+    
+#     return DFS(problem.getStartState(), ["""empty"""])
+
+# def breadthFirstSearch(problem):
+#     def BFS(root, leafActions):
+#         leafActions.add(root.action)
+#         leaves = root.getSuccessors()
+
+#         if(leaves is None):
+#             return None
+        
+#         for leaf in leaves:
+#             if(leaf.isGoalState(leaf)):
+#                 return leafActions
+            
+#         for leaf in leaves:
+#             leafActions = BFS(leaf, leafActions)
+#             if(leafActions is not None):
+#                 return leafActions
+    
+#     return BFS(problem.getStartState, ["""empty"""])
+
+# def uniformCostSearch(problem):
+#     tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
+#     goalPathNumbers = 0
+#     tuple[goalPathNumbers][0] = ["""illegal"""]
+#     tuple[goalPathNumbers][1] = ["""infinity"""]
+
+#     def USC(root, branchActions):
+#         if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
+#             return None
+            
+#         branchActions.add(root.action)
+
+#         if(root.isGoalState(root)):
+#             tuple[goalPathNumbers][0] = branchActions
+#             tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
+#             goalPathNumbers += 1
+#             return
+             
+#         leaves = root.getSuccessors()
+#         for leaf in leaves:
+#             branchActions = USC(leaf, branchActions)
+            
+#     USC(problem.getStartState(), ["""empty"""])
+
+#     for number in range(1,goalPathNumbers):
+#         if(tuple[0][1] > tuple[number][1]):
+#             tuple[0] = tuple[number]
+        
+#     return tuple[0][0]
 
 def nullHeuristic(state, problem=None):
     """
@@ -137,38 +236,81 @@ def myAStarHeuristic(state, problem):
 
 """---------------------------------------------------------------------------------------------"""
 
-def aStarSearch(problem, heuristic=nullHeuristic):        
-    tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
-    goalPathNumbers = 0
-    tuple[goalPathNumbers][0] = ["""illegal"""]
-    tuple[goalPathNumbers][1] = ["""infinity"""]
 
-    def AStar(root, branchActions):
-        if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
-            return None
-            
-        branchActions.add(root.action)
+def aStarSearch(problem, heuristic=nullHeuristic):
+    from util import PriorityQueue
 
-        if(root.isGoalState(root)):
-            tuple[goalPathNumbers][0] = branchActions
-            tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
-            goalPathNumbers += 1
-            return
-             
-        leaves = root.getSuccessors(root)
+    from util import Queue
 
-        for leaf in leaves:
-            branchActions = AStar(leaf, branchActions)
-            
-    AStar(problem.getStartState(), ["""empty"""])
+    actions = Queue
+    
+    priorityQueue = PriorityQueue
+    
+    finish = False
 
-    for number in range(1,goalPathNumbers):
-        if(tuple[0][1] > tuple[number][1]):
-            tuple[0] = tuple[number]
+    def UCS(root):
+        if(root in problem.explored):
+            return priorityQueue
         
-    return tuple[0][0]
+        if(finish == True):
+            return actions
+        
+        priorityQueue.push(root, actions.getCostOfActions(actions) + abs(root.position - problem.goalState.position))
 
+        actions.push(root.action)
 
+        item = priorityQueue.pop()
+
+        if(item.isGoalState()):
+            finish = True
+            return actions
+             
+        leaves = priorityQueue.pop().getSuccessors()
+
+        if(leaves is None):
+            return actions
+        
+        for leaf in leaves:
+            if(finish == True):
+                return actions
+            actions = UCS(leaf)
+
+        actions.pop()
+    
+    return UCS(problem.getStartState())
+
+# def aStarSearch(problem, heuristic=nullHeuristic):        
+#     tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
+#     goalPathNumbers = 0
+#     tuple[goalPathNumbers][0] = ["""illegal"""]
+#     tuple[goalPathNumbers][1] = ["""infinity"""]
+
+#     def AStar(root, branchActions):
+#         if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
+#             return None
+            
+#         branchActions.add(root.action)
+
+#         if(root.isGoalState(root)):
+#             tuple[goalPathNumbers][0] = branchActions
+#             tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
+#             goalPathNumbers += 1
+#             return
+             
+#         leaves = root.getSuccessors()
+
+#         for leaf in leaves:
+#             branchActions = AStar(leaf, branchActions)
+            
+#     AStar(problem.getStartState(), ["""empty"""])
+
+#     for number in range(1,goalPathNumbers):
+#         if(tuple[0][1] > tuple[number][1]):
+#             tuple[0] = tuple[number]
+        
+#     return tuple[0][0]
+
+#util | pacman | game
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
