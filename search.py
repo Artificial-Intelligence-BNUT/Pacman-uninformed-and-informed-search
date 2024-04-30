@@ -1,7 +1,7 @@
 
 """
 In search.py, you will implement generic search algorithms which are called by
-Pacman agents (in searchAgents.py).
+Pacman nodes (in searchnodes.py).
 """
 import util
 
@@ -60,169 +60,146 @@ def tinyMazeSearch(problem):
 
 def depthFirstSearch(problem):
     from util import Stack
-    stack = Stack
-    finish = False
+    from util import Queue
+    from search import SearchProblem
+    from pacman import GameState
 
-    def DFS(root):
-        if(root in problem.explored):
-            return stack
-        if(finish == True):
-            return stack
-        
-        stack.push(root)
+    nodes = Stack
 
-        if(root.isGoalState(root)):
-            finish = True
-            return stack
-             
-        leaves = stack.pop().getSuccessors()
+    actions = Stack
 
-        if(leaves is None):
-            return None
-        
-        for leaf in leaves:
-            if(finish == True):
-                return stack
-            stack = DFS(leaf)
+    nodes.push(SearchProblem.getStartState(GameState))
     
-    return DFS(problem.getStartState())
+    while(not nodes.isEmpty()):
+
+        node = nodes.pop()
+
+        GameState.getLegalActions(node)
+
+        actions.push(node.action)
+
+        if(SearchProblem.isGoalState(GameState,node)):
+            return actions
+        
+        successors = Queue
+        
+        successors.push(SearchProblem.getSuccessors(nodes.pop()))
+
+        while(successors.isEmpty()):
+            actions.pop()
+            tempQueue = Queue(SearchProblem.getSuccessors(nodes.pop()))
+            for temp in tempQueue:
+                if(temp not in GameState.explored):
+                    successors.push(temp)
+
+        while(not successors.isEmpty()):
+            nodes.push(successors.pop())
+            
+    return False
 
 def breadthFirstSearch(problem):
+    from util import Stack
     from util import Queue
-    queue = Queue
-    finish = False
+    from search import SearchProblem
+    from pacman import GameState
 
-    def BFS(root):
-        if(root in problem.explored):
-            return queue
+    nodes = Queue    
 
-        if(finish == True):
-            return queue
+    actions = Stack
+
+    def bfs(node,actions):
+
+        actions = Stack(actions)
+
+        if(node in GameState.explored):
+            return None
         
-        queue.push(root)
+        GameState.getLegalActions(node)
 
-        if(root.isGoalState()):
-            finish = True
-            return queue
-             
-        leaves = queue.pop().getSuccessors()
+        actions.push(node.action)
 
-        if(leaves is None):
-            return queue
+        if(SearchProblem.isGoalState(GameState,node)):
+            return actions
         
-        for leaf in leaves:
-            if(finish == True):
-                return queue
-            queue = BFS(leaf)
-    
-    return BFS(problem.getStartState())
+        frontier = Queue
+        
+        frontier.push(SearchProblem.getSuccessors(nodes.pop()))
+
+        while(not frontier.isEmpty()):
+            actionsResult = Stack(bfs(frontier.pop(),actions))
+            if(not actions.isEmpty()):
+                return actionsResult
+            
+        return None
+            
+    return bfs(SearchProblem.getStartState(GameState),actions)
 
 def uniformCostSearch(problem):
     from util import PriorityQueue
-
     from util import Queue
-    
-    priorityQueue = PriorityQueue
-    
-    finish = False
+    from util import Stack
+    from search import SearchProblem
+    from pacman import GameState
 
-    def UCS(root):
-        if(root in problem.explored):
-            return priorityQueue
+    nodesQueue = PriorityQueue
+
+    actionsQueue = PriorityQueue
+
+    actions = Stack
+
+    nodes = Queue
+
+    def ucs(node,nodes,actions):
+
+        nodes = Queue(nodes)
         
-        if(finish == True):
-            return actions
+        GameState.getLegalActions(node)
+
+        actions = Stack(actions)
+
+        if(node in GameState.explored):
+            return None
+
+        actions.push(node.action)
+
+        nodes.push(node)
+
+        actionsQueue.update(actions, SearchProblem.getCostOfActions(actions)*-1)
+
+        nodesQueue.update(nodes, SearchProblem.getCostOfActions(actions)*-1)
+
+        tempActions = Stack(actionsQueue.pop())
+
+        actionsQueue.push(tempActions, SearchProblem.getCostOfActions(tempActions))
+
+        tempNodes = Stack(nodesQueue.pop())
         
-        priorityQueue.push(root, actions.getCostOfActions(actions))
+        nodesQueue.push(tempNodes, SearchProblem.getCostOfActions(tempActions)*-1)
 
-        actions.push(root.action)
+        tempNode = tempNodes.pop()
 
-        item = priorityQueue.pop()
+        tempNodes.push(tempNode)
 
-        if(item.isGoalState()):
-            finish = True
-            return actions
-             
-        leaves = priorityQueue.pop().getSuccessors()
-
-        if(leaves is None):
-            return actions
+        if(SearchProblem.isGoalState(GameState,tempNode)):
+            return tempNodes
         
-        for leaf in leaves:
-            if(finish == True):
-                return actions
-            actions = UCS(leaf)
+        frontier = PriorityQueue
 
-        actions.pop()
-    
-    return UCS(problem.getStartState())
+        tempQueue = Queue
 
-# def depthFirstSearch(problem):
-#     def DFS(root, branchActions):
-#         branchActions.add(root.action)
+        tempQueue.push(SearchProblem.getSuccessors(nodes.pop()))
 
-#         if(root.isGoalState(root)):
-#             return branchActions
-             
-#         leaves = root.getSuccessors()
-
-#         if(leaves is None):
-#             return None        
-#         for leaf in leaves:
-#             branchActions = DFS(leaf, branchActions)
-#             if(branchActions is not None):
-#                 return branchActions
-    
-#     return DFS(problem.getStartState(), ["""empty"""])
-
-# def breadthFirstSearch(problem):
-#     def BFS(root, leafActions):
-#         leafActions.add(root.action)
-#         leaves = root.getSuccessors()
-
-#         if(leaves is None):
-#             return None
+        for temp in tempQueue:
+            frontier.push(temp,temp.stepCost*-1)
         
-#         for leaf in leaves:
-#             if(leaf.isGoalState(leaf)):
-#                 return leafActions
+        while(not frontier.isEmpty()):
+            actionsResult = Stack(ucs(frontier.pop(),actions,GameState))
+            if(not actionsResult.isEmpty()):
+                return actionsResult
             
-#         for leaf in leaves:
-#             leafActions = BFS(leaf, leafActions)
-#             if(leafActions is not None):
-#                 return leafActions
-    
-#     return BFS(problem.getStartState, ["""empty"""])
-
-# def uniformCostSearch(problem):
-#     tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
-#     goalPathNumbers = 0
-#     tuple[goalPathNumbers][0] = ["""illegal"""]
-#     tuple[goalPathNumbers][1] = ["""infinity"""]
-
-#     def USC(root, branchActions):
-#         if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
-#             return None
+        return None
             
-#         branchActions.add(root.action)
-
-#         if(root.isGoalState(root)):
-#             tuple[goalPathNumbers][0] = branchActions
-#             tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
-#             goalPathNumbers += 1
-#             return
-             
-#         leaves = root.getSuccessors()
-#         for leaf in leaves:
-#             branchActions = USC(leaf, branchActions)
-            
-#     USC(problem.getStartState(), ["""empty"""])
-
-#     for number in range(1,goalPathNumbers):
-#         if(tuple[0][1] > tuple[number][1]):
-#             tuple[0] = tuple[number]
-        
-#     return tuple[0][0]
+    return ucs(SearchProblem.getStartState(GameState),nodes,actions)
 
 def nullHeuristic(state, problem=None):
     """
@@ -231,86 +208,85 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def myAStarHeuristic(state, problem):
-    return problem.goal - state
+def myHeuristic(state, problem):
+    
+    return ((state[x] - problem[x])**2 + (state[y] - problem[y])**2)**0.5
 
 """---------------------------------------------------------------------------------------------"""
 
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     from util import PriorityQueue
-
     from util import Queue
+    from util import Stack
+    from search import SearchProblem
+    from pacman import GameState
 
-    actions = Queue
-    
-    priorityQueue = PriorityQueue
-    
-    finish = False
+    nodesQueue = PriorityQueue
 
-    def UCS(root):
-        if(root in problem.explored):
-            return priorityQueue
+    actionsQueue = PriorityQueue
+
+    actions = Stack
+
+    nodes = Queue
+
+    def astar(node,nodes,actions):
+
+        nodes = Queue(nodes)
+
+        actions = Stack(actions)
+
+        if(node in GameState.explored):
+            return None
         
-        if(finish == True):
-            return actions
+        GameState.getLegalActions(node)
+
+        nodeHeuristic = myHeuristic(node, GameState)
+
+        actions.push(node.action)
+
+        nodes.push(node)
+
+        actionsQueue.update(actions, SearchProblem.getCostOfActions(actions)*-1 - nodeHeuristic)
+
+        nodesQueue.update(nodes, SearchProblem.getCostOfActions(actions)*-1 - nodeHeuristic)
+
+        tempNodes = Stack(nodesQueue.pop())
+
+        tempNode = tempNodes.pop()
+
+        tempNodes.push(tempNode)
+
+        tempHeuristic = myHeuristic(tempNode, GameState)
+
+        tempActions = Stack(actionsQueue.pop())
+
+        actionsQueue.push(tempActions, SearchProblem.getCostOfActions(tempActions)*-1 - tempHeuristic)
         
-        priorityQueue.push(root, actions.getCostOfActions(actions) + abs(root.position - problem.goalState.position))
+        nodesQueue.push(tempNodes, SearchProblem.getCostOfActions(tempActions)*-1 - tempHeuristic)
 
-        actions.push(root.action)
-
-        item = priorityQueue.pop()
-
-        if(item.isGoalState()):
-            finish = True
-            return actions
-             
-        leaves = priorityQueue.pop().getSuccessors()
-
-        if(leaves is None):
-            return actions
+        if(SearchProblem.isGoalState(GameState,tempNode)):
+            return tempActions
         
-        for leaf in leaves:
-            if(finish == True):
-                return actions
-            actions = UCS(leaf)
+        frontier = PriorityQueue
 
-        actions.pop()
-    
-    return UCS(problem.getStartState())
+        tempQueue = Queue
 
-# def aStarSearch(problem, heuristic=nullHeuristic):        
-#     tuple = ["""goalPathNumbers"""]["""0 for action""""""1 for cost"""]
-#     goalPathNumbers = 0
-#     tuple[goalPathNumbers][0] = ["""illegal"""]
-#     tuple[goalPathNumbers][1] = ["""infinity"""]
+        tempQueue.push(SearchProblem.getSuccessors(nodes.pop()))
 
-#     def AStar(root, branchActions):
-#         if(branchActions.getCostOfActions(branchActions) > tuple[goalPathNumbers][1]):
-#             return None
+        for temp in tempQueue:
+            frontier.push(temp,temp.stepCost*-1 - myHeuristic(temp, GameState))
+        
+        while(not frontier.isEmpty()):
+            actionsResult = Stack(astar(frontier.pop(),actions,GameState))
+            if(not actionsResult.isEmpty()):
+                return actionsResult
             
-#         branchActions.add(root.action)
-
-#         if(root.isGoalState(root)):
-#             tuple[goalPathNumbers][0] = branchActions
-#             tuple[goalPathNumbers][1] = branchActions.getCostOfActions(branchActions)
-#             goalPathNumbers += 1
-#             return
-             
-#         leaves = root.getSuccessors()
-
-#         for leaf in leaves:
-#             branchActions = AStar(leaf, branchActions)
+        return None
             
-#     AStar(problem.getStartState(), ["""empty"""])
+    return astar(SearchProblem.getStartState(GameState),nodes,actions)
 
-#     for number in range(1,goalPathNumbers):
-#         if(tuple[0][1] > tuple[number][1]):
-#             tuple[0] = tuple[number]
-        
-#     return tuple[0][0]
-
-#util | pacman | game
+# util | pacman | game
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
