@@ -70,7 +70,7 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
     """
@@ -86,17 +86,77 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
+    frontier = util.Stack()
+    explored = []
+    startState = problem.getStartState()
+    startNode = (startState, [])
+    frontier.push(startNode)
+
+    while not frontier.isEmpty():
+        state, actions = frontier.pop()
+
+        if state not in explored:
+            explored.append(state)
+
+            if problem.isGoalState(state):
+                return actions
+            else:
+                next = problem.getSuccessors(state)
+                for nextState, nextAction, cost in next:
+                    newAction = actions + [nextAction]
+                    newNode = (nextState, newAction)
+                    frontier.push(newNode)
+
+    return actions
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    frontier = util.Queue()
+    explored = []
+    startState = problem.getStartState()
+    startNode = (startState, [], 0)
+    frontier.push(startNode)
+
+    while not frontier.isEmpty():
+        State, actions, Cost = frontier.pop()
+
+        if State not in explored:
+            explored.append(State)
+
+            if problem.isGoalState(State):
+                return actions
+            else:
+                next = problem.getSuccessors(State)
+                for nextState, nextAction, nextCost in next:
+                    newAction = actions + [nextAction]
+                    newCost = Cost + nextCost
+                    newNode = (nextState, newAction, newCost)
+                    frontier.push(newNode)
+
+    return actions
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
+    start = problem.getStartState()
+    exploredState = []
+    states = util.PriorityQueue()
+    states.push((start, []), 0)
+    while not states.isEmpty():
+        state, actions = states.pop()
+        if problem.isGoalState(state):
+            return actions
+        if state not in exploredState:
+            successors = problem.getSuccessors(state)
+            for s in successors:
+                coordinates = s[0]
+                if coordinates not in exploredState:
+                    directions = s[1]
+                    newCost = actions + [directions]
+                    states.push((coordinates, actions + [directions]), problem.getCostOfActions(newCost))
+        exploredState.append(state)
+    return actions
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -108,7 +168,26 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
+    start = problem.getStartState()
+    exploredState = []
+    states = util.PriorityQueue()
+    states.push((start, []), nullHeuristic(start, problem))
+    nCost = 0
+    while not states.isEmpty():
+        state, actions = states.pop()
+        if problem.isGoalState(state):
+            return actions
+        if state not in exploredState:
+            successors = problem.getSuccessors(state)
+            for succ in successors:
+                coordinates = succ[0]
+                if coordinates not in exploredState:
+                    directions = succ[1]
+                    nActions = actions + [directions]
+                    nCost = problem.getCostOfActions(nActions) + heuristic(coordinates, problem)
+                    states.push((coordinates, actions + [directions]), nCost)
+        exploredState.append(state)
+    return actions
     util.raiseNotDefined()
 
 
