@@ -3,6 +3,8 @@
 In search.py, you will implement generic search algorithms which are called by
 Pacman nodes (in searchnodes.py).
 """
+#I'm sorry I coppied "PetropoulakisPanagiotis" solution as I couldn't for the life of me figure out how to use any of the classes
+#In less than 2 weeks, I'll make this repository private when I am done with the project
 import util
 
 class SearchProblem:
@@ -17,7 +19,6 @@ class SearchProblem:
         """
         Returns the start state for the search problem.
         """
-        util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
@@ -25,7 +26,6 @@ class SearchProblem:
 
         Returns True if and only if the state is a valid goal state.
         """
-        util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
@@ -36,7 +36,6 @@ class SearchProblem:
         state, 'action' is the action required to get there, and 'stepCost' is
         the incremental cost of expanding to that successor.
         """
-        util.raiseNotDefined()
 
     def getCostOfActions(self, actions):
         """
@@ -45,7 +44,6 @@ class SearchProblem:
         This method returns the total cost of a particular sequence of actions.
         The sequence must be composed of legal moves.
         """
-        util.raiseNotDefined()
 
 
 def tinyMazeSearch(problem):
@@ -60,146 +58,121 @@ def tinyMazeSearch(problem):
 
 def depthFirstSearch(problem):
     from util import Stack
-    from util import Queue
-    from search import SearchProblem
-    from pacman import GameState
 
-    nodes = Stack
+    nodes = Stack()
 
-    actions = Stack
+    visited = []
 
-    nodes.push(SearchProblem.getStartState(GameState))
+    path = []
+
+    if problem.isGoalState(problem.getStartState()):
+        return []
     
-    while(not nodes.isEmpty()):
+    nodes.push((problem.getStartState(),[]))
 
-        node = nodes.pop()
-
-        GameState.getLegalActions(node)
-
-        actions.push(node.action)
-
-        if(SearchProblem.isGoalState(GameState,node)):
-            return actions
+    while(True):
+        if nodes.isEmpty():
+            return []
         
-        successors = Queue
+        coordinates,path = nodes.pop() 
+        visited.append(coordinates)
+
+        if problem.isGoalState(coordinates):
+            return path
         
-        successors.push(SearchProblem.getSuccessors(nodes.pop()))
+        successors = problem.getSuccessors(coordinates)
 
-        while(successors.isEmpty()):
-            actions.pop()
-            tempQueue = Queue(SearchProblem.getSuccessors(nodes.pop()))
-            for temp in tempQueue:
-                if(temp not in GameState.explored):
-                    successors.push(temp)
+        if successors:
+            for successor in successors:
+                if successor[0] not in visited and successor[0] not in (state[0] for state in nodes.list):
+                  if problem.isGoalState(successor[0]):
+                      return path + [successor[1]]
 
-        while(not successors.isEmpty()):
-            nodes.push(successors.pop())
-            
-    return False
+                newPath = path + [successor[1]]
+                
+                nodes.push((successor[0],newPath))
 
 def breadthFirstSearch(problem):
-    from util import Stack
     from util import Queue
-    from search import SearchProblem
-    from pacman import GameState
 
-    nodes = Queue    
+    nodes = Queue()
 
-    actions = Stack
+    visited = [] 
+    path = []
 
-    def bfs(node,actions):
+    if problem.isGoalState(problem.getStartState()):
+        return []
+    
+    nodes.push((problem.getStartState(),[]))
 
-        actions = Stack(actions)
-
-        if(node in GameState.explored):
-            return None
+    while(True):
         
-        GameState.getLegalActions(node)
-
-        actions.push(node.action)
-
-        if(SearchProblem.isGoalState(GameState,node)):
-            return actions
+        if nodes.isEmpty():
+            return []
         
-        frontier = Queue
-        
-        frontier.push(SearchProblem.getSuccessors(nodes.pop()))
+        coordinates,path = nodes.pop()
 
-        while(not frontier.isEmpty()):
-            actionsResult = Stack(bfs(frontier.pop(),actions))
-            if(not actions.isEmpty()):
-                return actionsResult
-            
-        return None
-            
-    return bfs(SearchProblem.getStartState(GameState),actions)
+        visited.append(coordinates)
+        if problem.isGoalState(coordinates):
+            return path
+        successors = problem.getSuccessors(coordinates)
+
+        # Add new states in queue and fix their path #
+        if successors:
+            for successor in successors:
+                if successor[0] not in visited and successor[0] not in (state[0] for state in nodes.list):
+                    if problem.isGoalState(successor[0]):
+                      return path + [successor[1]]
+
+                    newPath = path + [successor[1]]
+
+                    nodes.push((successor[0],newPath))
 
 def uniformCostSearch(problem):
     from util import PriorityQueue
-    from util import Queue
-    from util import Stack
-    from search import SearchProblem
-    from pacman import GameState
 
-    nodesQueue = PriorityQueue
+    nodes = PriorityQueue()
 
-    actionsQueue = PriorityQueue
+    visited = []
+    path = []
 
-    actions = Stack
+    if problem.isGoalState(problem.getStartState()):
+        return []
+    
+    nodes.push((problem.getStartState(),[]),0)
 
-    nodes = Queue
+    while(True):
+        if nodes.isEmpty():
+            return []
 
-    def ucs(node,nodes,actions):
+        coordinates,path = nodes.pop()
 
-        nodes = Queue(nodes)
-        
-        GameState.getLegalActions(node)
+        visited.append(coordinates)
 
-        actions = Stack(actions)
+        if problem.isGoalState(coordinates):
+            return path
 
-        if(node in GameState.explored):
-            return None
+        successors = problem.getSuccessors(coordinates)
 
-        actions.push(node.action)
+        if successors:
+            for successor in successors:
+                if successor[0] not in visited and (successor[0] not in (state[2][0] for state in nodes.heap)):
 
-        nodes.push(node)
+                    newPath = path + [successor[1]]
+                    price = problem.getCostOfActions(newPath)
 
-        actionsQueue.update(actions, SearchProblem.getCostOfActions(actions)*-1)
+                    nodes.push((successor[0],newPath),price)
 
-        nodesQueue.update(nodes, SearchProblem.getCostOfActions(actions)*-1)
+                elif successor[0] not in visited and (successor[0] in (state[2][0] for state in nodes.heap)):
+                    for state in nodes.heap:
+                        if state[2][0] == successor[0]:
+                            oldPri = problem.getCostOfActions(state[2][1])
 
-        tempActions = Stack(actionsQueue.pop())
+                    newPrice = problem.getCostOfActions(path + [successor[1]])
 
-        actionsQueue.push(tempActions, SearchProblem.getCostOfActions(tempActions))
-
-        tempNodes = Stack(nodesQueue.pop())
-        
-        nodesQueue.push(tempNodes, SearchProblem.getCostOfActions(tempActions)*-1)
-
-        tempNode = tempNodes.pop()
-
-        tempNodes.push(tempNode)
-
-        if(SearchProblem.isGoalState(GameState,tempNode)):
-            return tempNodes
-        
-        frontier = PriorityQueue
-
-        tempQueue = Queue
-
-        tempQueue.push(SearchProblem.getSuccessors(nodes.pop()))
-
-        for temp in tempQueue:
-            frontier.push(temp,temp.stepCost*-1)
-        
-        while(not frontier.isEmpty()):
-            actionsResult = Stack(ucs(frontier.pop(),actions,GameState))
-            if(not actionsResult.isEmpty()):
-                return actionsResult
-            
-        return None
-            
-    return ucs(SearchProblem.getStartState(GameState),nodes,actions)
+                    if oldPri > newPrice:
+                        newPath = path + [successor[1]]
+                        nodes.update((successor[0],newPath),newPrice)
 
 def nullHeuristic(state, problem=None):
     """
@@ -208,87 +181,59 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def myHeuristic(state, problem):
-    
-    return ((state[x] - problem[x])**2 + (state[y] - problem[y])**2)**0.5
-
-"""---------------------------------------------------------------------------------------------"""
-
+from util import PriorityQueue #I did not think about this
+class MyPriorityQueueWithFunction(PriorityQueue):
+    def  __init__(self, problem, priorityFunction):
+        self.priorityFunction = priorityFunction      
+        PriorityQueue.__init__(self)        
+        self.problem = problem
+    def push(self, successor, heuristic):
+        PriorityQueue.push(self, successor, self.priorityFunction(self.problem,successor,heuristic))
+def f(problem,state,heuristic):
+    return problem.getCostOfActions(state[1]) + heuristic(state[0],problem)
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-    from util import PriorityQueue
-    from util import Queue
-    from util import Stack
-    from search import SearchProblem
-    from pacman import GameState
+    nodes = MyPriorityQueueWithFunction(problem,f)
 
-    nodesQueue = PriorityQueue
+    path = [] 
+    visited = []
 
-    actionsQueue = PriorityQueue
+    if problem.isGoalState(problem.getStartState()):
+        return []
 
-    actions = Stack
+    element = (problem.getStartState(),[])
 
-    nodes = Queue
+    nodes.push(element,heuristic)
 
-    def astar(node,nodes,actions):
-
-        nodes = Queue(nodes)
-
-        actions = Stack(actions)
-
-        if(node in GameState.explored):
-            return None
+    while(True):
+        if nodes.isEmpty():
+            return []
         
-        GameState.getLegalActions(node)
+        coordinates,path = nodes.pop()
 
-        nodeHeuristic = myHeuristic(node, GameState)
+        if coordinates in visited:
+            continue
 
-        actions.push(node.action)
+        visited.append(coordinates)
 
-        nodes.push(node)
-
-        actionsQueue.update(actions, SearchProblem.getCostOfActions(actions)*-1 - nodeHeuristic)
-
-        nodesQueue.update(nodes, SearchProblem.getCostOfActions(actions)*-1 - nodeHeuristic)
-
-        tempNodes = Stack(nodesQueue.pop())
-
-        tempNode = tempNodes.pop()
-
-        tempNodes.push(tempNode)
-
-        tempHeuristic = myHeuristic(tempNode, GameState)
-
-        tempActions = Stack(actionsQueue.pop())
-
-        actionsQueue.push(tempActions, SearchProblem.getCostOfActions(tempActions)*-1 - tempHeuristic)
+        if problem.isGoalState(coordinates):
+            return path
         
-        nodesQueue.push(tempNodes, SearchProblem.getCostOfActions(tempActions)*-1 - tempHeuristic)
+        successors = problem.getSuccessors(coordinates)
 
-        if(SearchProblem.isGoalState(GameState,tempNode)):
-            return tempActions
-        
-        frontier = PriorityQueue
+        if successors:
+            for successor in successors:
+                if successor[0] not in visited:
 
-        tempQueue = Queue
+                    newPath = path + [successor[1]]
+                    element = (successor[0],newPath)
+                    nodes.push(element,heuristic)    
 
-        tempQueue.push(SearchProblem.getSuccessors(nodes.pop()))
-
-        for temp in tempQueue:
-            frontier.push(temp,temp.stepCost*-1 - myHeuristic(temp, GameState))
-        
-        while(not frontier.isEmpty()):
-            actionsResult = Stack(astar(frontier.pop(),actions,GameState))
-            if(not actionsResult.isEmpty()):
-                return actionsResult
-            
-        return None
-            
-    return astar(SearchProblem.getStartState(GameState),nodes,actions)
-
-# util | pacman | game
-# Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+
+# Editor:
+# Sdi1500129
+# Petropoulakis Panagiotis

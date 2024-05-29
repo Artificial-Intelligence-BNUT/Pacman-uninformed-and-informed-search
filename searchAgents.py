@@ -521,6 +521,10 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        for dot in self.food:
+            i,j = dot
+            if(x - i == 0 and y - j ==0):
+                return True
         util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):
