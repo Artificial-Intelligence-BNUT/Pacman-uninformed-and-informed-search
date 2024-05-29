@@ -234,6 +234,7 @@ dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
 
+# Author's note
 # Editor:
 # Sdi1500129
 # Petropoulakis Panagiotis
